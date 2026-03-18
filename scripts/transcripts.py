@@ -6,7 +6,11 @@ import random
 def get_transcript(video_id):
     try:
         api = YouTubeTranscriptApi()
-        transcript = api.fetch(video_id=video_id, languages=['hi'])
+
+        try:
+            transcript = api.fetch(video_id=video_id, languages=['hi'])
+        except:
+            transcript = api.fetch(video_id=video_id, languages=['en'])
         print(transcript[:2])
         text = " ".join([t.text for t in transcript])
         return text
