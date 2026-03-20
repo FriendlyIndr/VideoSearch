@@ -28,7 +28,7 @@ def search(query, videos):
 
     return results[:3]
 
-results = search("जो सुनो उस पर भरोसा मत करो", videos)
+results = search("कुछ न होने से कुछ होना बेहतर है। अपूर्ण प्रगति भी प्रगति ही है।", videos)
 
 for r in results:
     print(f"Score: {r['score']:.4f}")
