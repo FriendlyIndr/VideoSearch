@@ -41,6 +41,6 @@ if __name__ == "__main__":
 
     for r in results:
         print(f"Score: {r['score']:.4f}")
-        print(f"Video ID: {r['video_id']}")
+        print(f"Video URL: https://www.youtube.com/watch?v={r["video_id"]}")
         print(f"Text: {r['text'][:200]}")
         print("-" * 50)
