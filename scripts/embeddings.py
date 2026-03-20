@@ -25,8 +25,11 @@ with open("data/videos.json", "r", encoding="utf-8") as f:
 for video in videos:
     if "transcript" in video and video["transcript"]:
 
-        chunks = chunk_text(video["transcript"])
+        # Skip if already embedded
+        if "chunks" in video and video["chunks"]:
+            continue
 
+        chunks = chunk_text(video["transcript"])
         video["chunks"] = []
 
         for chunk in chunks:
