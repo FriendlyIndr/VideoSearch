@@ -1,6 +1,15 @@
 import json
 import sys
 from urllib.parse import urlparse, parse_qs
+import requests
+
+def get_title(video_id):
+    url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+    try:
+        res = requests.get(url)
+        return res.json().get("title", "")
+    except:
+        return ""
 
 def extract_video_id(url):
     parsed_url = urlparse(url)
@@ -22,7 +31,7 @@ def add_video(video_id):
         
     new_video = {
         "video_id": video_id,
-        "title": ""
+        "title": get_title(video_id)
     }
 
     videos.append(new_video)
