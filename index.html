@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+        body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f5f3;
+        color: #1a1a18;
+        min-height: 100vh;
+        padding: 2rem 1rem;
+        }
+    
+        .container {
+        max-width: 740px;
+        margin: 0 auto;
+        }
+    
+        h1 {
+        font-size: 22px;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        }
+    
+        .subtitle {
+        font-size: 14px;
+        color: #888780;
+        margin-bottom: 2rem;
+        }
+    
+        .search-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 2rem;
+        }
+    
+        input[type="text"] {
+        flex: 1;
+        height: 40px;
+        padding: 0 14px;
+        font-size: 15px;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 8px;
+        background: #fff;
+        color: #1a1a18;
+        outline: none;
+        transition: border-color 0.15s;
+        }
+    
+        input[type="text"]:focus { border-color: #888780; }
+    
+        .top-k-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #888780;
+        white-space: nowrap;
+        }
+    
+        select {
+        height: 40px;
+        padding: 0 10px;
+        font-size: 13px;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 8px;
+        background: #fff;
+        color: #1a1a18;
+        cursor: pointer;
+        outline: none;
+        }
+    
+        button {
+        height: 40px;
+        padding: 0 20px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 8px;
+        background: #fff;
+        color: #1a1a18;
+        cursor: pointer;
+        transition: background 0.1s;
+        white-space: nowrap;
+        }
+    
+        button:hover { background: #f1efe8; }
+        button:active { transform: scale(0.98); }
+    
+        button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        }
+    
+        .status {
+        font-size: 13px;
+        color: #888780;
+        margin-bottom: 1rem;
+        min-height: 18px;
+        }
+    
+        .error { color: #a32d2d; }
+    
+        .results { display: flex; flex-direction: column; gap: 12px; }
+    
+        .card {
+        background: #fff;
+        border: 0.5px solid #d3d1c7;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        }
+    
+        .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        }
+    
+        .score-badge {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 99px;
+        background: #eeedfe;
+        color: #3c3489;
+        white-space: nowrap;
+        }
+    
+        .video-link {
+        font-size: 13px;
+        color: #185fa5;
+        text-decoration: none;
+        word-break: break-all;
+        }
+    
+        .video-link:hover { text-decoration: underline; }
+    
+        .chunk-text {
+        font-size: 14px;
+        line-height: 1.65;
+        color: #444441;
+        border-left: 2px solid #d3d1c7;
+        padding-left: 12px;
+        }
+    
+        .empty {
+        font-size: 14px;
+        color: #888780;
+        padding: 2rem 0;
+        text-align: center;
+        }
+    
+        .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #d3d1c7;
+        border-top-color: #888780;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: middle;
+        margin-right: 6px;
+        }
+    
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video search</h1>
+        <p class="subtitle">Semantic search across your indexed YouTube videos</p>
+    
+        <div class="search-row">
+        <input type="text" id="query" placeholder="What are you looking for?" autofocus />
+        <div class="top-k-wrap">
+            <label for="topk">Top</label>
+            <select id="topk">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            </select>
+        </div>
+        <button id="searchBtn" onclick="doSearch()">Search</button>
+        </div>
+    
+        <div class="status" id="status"></div>
+        <div class="results" id="results"></div>
+    </div>
+    
+    <script>
+        const queryInput = document.getElementById("query");
+        const statusEl = document.getElementById("status");
+        const resultsEl = document.getElementById("results");
+        const searchBtn = document.getElementById("searchBtn");
+    
+        queryInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") doSearch();
+        });
+    
+        async function doSearch() {
+        const q = queryInput.value.trim();
+        if (!q) return;
+    
+        const topk = document.getElementById("topk").value;
+        searchBtn.disabled = true;
+        statusEl.className = "status";
+        statusEl.innerHTML = `<span class="spinner"></span>Searching…`;
+        resultsEl.innerHTML = "";
+    
+        try {
+            const res = await fetch(`/search?q=${encodeURIComponent(q)}&top_k=${topk}`);
+            if (!res.ok) throw new Error(`Server error: ${res.status}`);
+            const data = await res.json();
+    
+            const { results } = data;
+            statusEl.textContent = results.length
+            ? `${results.length} result${results.length !== 1 ? "s" : ""} for "${q}"`
+            : "";
+    
+            if (!results.length) {
+            resultsEl.innerHTML = `<p class="empty">No results found.</p>`;
+            return;
+            }
+    
+            resultsEl.innerHTML = results.map((r, i) => `
+            <div class="card">
+                <div class="card-header">
+                <a class="video-link"
+                    href="https://www.youtube.com/watch?v=${r.video_id}"
+                    target="_blank"
+                    rel="noopener">
+                    youtube.com/watch?v=${r.video_id}
+                </a>
+                <span class="score-badge">${(r.score * 100).toFixed(1)}% match</span>
+                </div>
+                <p class="chunk-text">${escapeHtml(r.text)}</p>
+            </div>
+            `).join("");
+    
+        } catch (err) {
+            statusEl.className = "status error";
+            statusEl.textContent = err.message;
+        } finally {
+            searchBtn.disabled = false;
+        }
+        }
+    
+        function escapeHtml(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
