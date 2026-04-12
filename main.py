@@ -42,6 +42,10 @@ def search(query: str, top_k: int = 5):
 
     return results[:top_k]
 
+@app.post("/injest")
+def inject_endpoint():
+    return
+
 @app.get("/videos")
 def list_videos():
     with open("data/videos.json", "r", encoding="utf-8") as f:
