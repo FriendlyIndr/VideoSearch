@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import pickle
+import json
 
 from scripts import embeddings
 
@@ -41,6 +42,11 @@ def search(query: str, top_k: int = 5):
 
     return results[:top_k]
 
+@app.get("/videos")
+def list_videos():
+    with open("data/videos.json", "r", encoding="utf-8") as f:
+        videos = json.load(f)
+    return [{"video_id": v["video_id"], "title": v.get("title", "")} for v in videos]
 
 @app.get("/search")
 def search_endpoint(

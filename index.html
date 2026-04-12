@@ -31,6 +31,42 @@
         color: #888780;
         margin-bottom: 2rem;
         }
+
+        /* Tabs */
+        .tab-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            border-bottom: 0.5px solid #d3d1c7;
+            padding-bottom: 1rem;
+        }
+
+        .tab {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 400;
+            border: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            background: transparent;
+            color: #888780;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+            margin-bottom: -1px;
+        }
+
+        .tab:hover {
+            color: #1a1a18;
+        }
+
+        .tab.active {
+            color: #1a1a18;
+            border-bottom-color: #1a1a18;
+            font-weight: 500;
+        }
+
+        /* Search */
     
         .search-row {
         display: flex;
@@ -105,73 +141,115 @@
         }
     
         .error { color: #a32d2d; }
+
+        /* Search results */
     
         .results { display: flex; flex-direction: column; gap: 12px; }
     
         .card {
-        background: #fff;
-        border: 0.5px solid #d3d1c7;
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+            background: #fff;
+            border: 0.5px solid #d3d1c7;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
     
         .card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
     
         .score-badge {
-        font-size: 12px;
-        font-weight: 500;
-        padding: 3px 10px;
-        border-radius: 99px;
-        background: #eeedfe;
-        color: #3c3489;
-        white-space: nowrap;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 99px;
+            background: #eeedfe;
+            color: #3c3489;
+            white-space: nowrap;
         }
     
         .video-link {
-        font-size: 13px;
-        color: #185fa5;
-        text-decoration: none;
-        word-break: break-all;
+            font-size: 13px;
+            color: #185fa5;
+            text-decoration: none;
+            word-break: break-all;
         }
     
         .video-link:hover { text-decoration: underline; }
     
         .chunk-text {
-        font-size: 14px;
-        line-height: 1.65;
-        color: #444441;
-        border-left: 2px solid #d3d1c7;
-        padding-left: 12px;
+            font-size: 14px;
+            line-height: 1.65;
+            color: #444441;
+            border-left: 2px solid #d3d1c7;
+            padding-left: 12px;
+            border-radius: 0;
         }
     
         .empty {
-        font-size: 14px;
-        color: #888780;
-        padding: 2rem 0;
-        text-align: center;
+            font-size: 14px;
+            color: #888780;
+            padding: 2rem 0;
+            text-align: center;
         }
     
         .spinner {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border: 2px solid #d3d1c7;
-        border-top-color: #888780;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-        vertical-align: middle;
-        margin-right: 6px;
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #d3d1c7;
+            border-top-color: #888780;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
         }
     
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Library */
+
+        .lib-card {
+            background: #fff;
+            border: 0.5px solid #d3d1c7;
+            border-radius: 12px;
+            padding: 0.25rem 1.25rem;
+        }
+
+        .video-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 0;
+            border-bottom: 0.5px solid #d3d1c7;
+        }
+
+        .video-row:last-child { border-bottom: none; }
+
+        .video-num { font-size: 13px; color: #888780; min-width: 24px; text-align: right; }
+
+        .video-info { flex: 1; min-width: 0; }
+
+        .video-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a18;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-id-label { font-size: 12px; color: #888780; margin-top: 2px; }
+
+        .video-ext-link { font-size: 12px; color: #185fa5; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+        .video-ext-link:hover { text-decoration: underline; }
+
+        .section-hidden { display: none; }
     </style>
 </head>
 <body>
@@ -179,87 +257,145 @@
         <h1>Video search</h1>
         <p class="subtitle">Semantic search across your indexed YouTube videos</p>
     
-        <div class="search-row">
-        <input type="text" id="query" placeholder="What are you looking for?" autofocus />
-        <div class="top-k-wrap">
-            <label for="topk">Top</label>
-            <select id="topk">
-            <option value="3">3</option>
-            <option value="5" selected>5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-            </select>
+        <div class="tab-row">
+            <button class="tab active" onclick="switchTab('search', this)">Search</button>
+            <button class="tab" onclick="switchTab('library', this)">Indexed videos</button>
         </div>
-        <button id="searchBtn" onclick="doSearch()">Search</button>
+
+        <!-- Search section -->
+        <div id="search-section">
+            <div class="search-row">
+                <input type="text" id="query" placeholder="What are you looking for?" autofocus />
+                <div class="top-k-wrap">
+                    <label for="topk">Top</label>
+                    <select id="topk">
+                        <option value="3">3</option>
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <button id="searchBtn" onclick="doSearch()">Search</button>
+            </div>
+        
+            <div class="status" id="status"></div>
+            <div class="results" id="results"></div>
         </div>
-    
-        <div class="status" id="status"></div>
-        <div class="results" id="results"></div>
+
+        <!-- Library section -->
+         <div id="library-section" class="section-hidden">
+            <div class="status" id="lib-status"></div>
+            <div class="lib-card" id="lib-list"></div>
+         </div>
     </div>
     
     <script>
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            const isSearch = tab === "search";
+            document.getElementById('search-section').classList.toggle('section-hidden', !isSearch);
+            document.getElementById('library-section').classList.toggle('section-hidden', isSearch);
+            if (!isSearch) loadLibrary();
+        }
+
+        async function loadLibrary() {
+            const statusEl = document.getElementById('lib-status');
+            const listEl = document.getElementById('lib-list');
+            statusEl.innerHTML = `<span class="spinner"></span>Loading…`;
+            listEl.innerHTML = '';
+
+            try {
+                const res = await fetch('/videos');
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+                const videos = await res.json();
+                statusEl.textContent = `${videos.length} indexed video${videos.length !== 1 ? 's' : ''}`;
+                if (!videos.length) {
+                    listEl.innerHTML = `<p class="empty">No videos indexed yet.</p>`;
+                    return;
+                }
+
+                listEl.innerHTML = videos.map((v, i) => `
+                    <div class="video-row">
+                        <span class="video-num">${i + 1}</span>
+                        <div class="video-info">
+                            <div class="video-title">${escapeHtml(v.title || 'Untitled')}</div>
+                            <div class="video-id-label">${v.video_id}</div>
+                        </div>
+                        <a class="video-ext-link"
+                            href="https://www.youtube.com/watch?v=${v.video_id}"
+                            target="_blank" rel="noopener">Open ↗</a>
+                    </div>
+                `).join('');
+            } catch (err) {
+                statusEl.className = 'status error';
+                statusEl.textContent = err.message;
+            }
+        }
+
         const queryInput = document.getElementById("query");
         const statusEl = document.getElementById("status");
         const resultsEl = document.getElementById("results");
         const searchBtn = document.getElementById("searchBtn");
     
         queryInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") doSearch();
+            if (e.key === "Enter") doSearch();
         });
     
         async function doSearch() {
-        const q = queryInput.value.trim();
-        if (!q) return;
-    
-        const topk = document.getElementById("topk").value;
-        searchBtn.disabled = true;
-        statusEl.className = "status";
-        statusEl.innerHTML = `<span class="spinner"></span>Searching…`;
-        resultsEl.innerHTML = "";
-    
-        try {
-            const res = await fetch(`/search?q=${encodeURIComponent(q)}&top_k=${topk}`);
-            if (!res.ok) throw new Error(`Server error: ${res.status}`);
-            const data = await res.json();
-    
-            const { results } = data;
-            statusEl.textContent = results.length
-            ? `${results.length} result${results.length !== 1 ? "s" : ""} for "${q}"`
-            : "";
-    
-            if (!results.length) {
-            resultsEl.innerHTML = `<p class="empty">No results found.</p>`;
-            return;
-            }
-    
-            resultsEl.innerHTML = results.map((r, i) => `
-            <div class="card">
-                <div class="card-header">
-                <a class="video-link"
-                    href="https://www.youtube.com/watch?v=${r.video_id}"
-                    target="_blank"
-                    rel="noopener">
-                    youtube.com/watch?v=${r.video_id}
-                </a>
-                <span class="score-badge">${(r.score * 100).toFixed(1)}% match</span>
+            const q = queryInput.value.trim();
+            if (!q) return;
+        
+            const topk = document.getElementById("topk").value;
+            searchBtn.disabled = true;
+            statusEl.className = "status";
+            statusEl.innerHTML = `<span class="spinner"></span>Searching…`;
+            resultsEl.innerHTML = "";
+        
+            try {
+                const res = await fetch(`/search?q=${encodeURIComponent(q)}&top_k=${topk}`);
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
+                const data = await res.json();
+        
+                const { results } = data;
+                statusEl.textContent = results.length
+                ? `${results.length} result${results.length !== 1 ? "s" : ""} for "${q}"`
+                : "";
+        
+                if (!results.length) {
+                resultsEl.innerHTML = `<p class="empty">No results found.</p>`;
+                return;
+                }
+        
+                resultsEl.innerHTML = results.map((r, i) => `
+                <div class="card">
+                    <div class="card-header">
+                    <a class="video-link"
+                        href="https://www.youtube.com/watch?v=${r.video_id}"
+                        target="_blank"
+                        rel="noopener">
+                        youtube.com/watch?v=${r.video_id}
+                    </a>
+                    <span class="score-badge">${(r.score * 100).toFixed(1)}% match</span>
+                    </div>
+                    <p class="chunk-text">${escapeHtml(r.text)}</p>
                 </div>
-                <p class="chunk-text">${escapeHtml(r.text)}</p>
-            </div>
-            `).join("");
-    
-        } catch (err) {
-            statusEl.className = "status error";
-            statusEl.textContent = err.message;
-        } finally {
-            searchBtn.disabled = false;
-        }
+                `).join("");
+        
+            } catch (err) {
+                statusEl.className = "status error";
+                statusEl.textContent = err.message;
+            } finally {
+                searchBtn.disabled = false;
+            }
         }
     
         function escapeHtml(str) {
-        return str
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
         }
     </script>
 </body>
