@@ -38,6 +38,12 @@
 
         <!-- Library section -->
          <div id="library-section" class="section-hidden">
+            <div class="add-row">
+                <input type="text" id="add-url" placeholder="https://www.youtube.com/watch?v=..."/>
+                <button id="addBtn" onclick="doAdd()">Add video</button>
+            </div>
+
+            <div class="status" id="add-status"></div>
             <div class="status" id="lib-status"></div>
             <div class="lib-card" id="lib-list"></div>
          </div>
@@ -51,6 +57,38 @@
             document.getElementById('search-section').classList.toggle('section-hidden', !isSearch);
             document.getElementById('library-section').classList.toggle('section-hidden', isSearch);
             if (!isSearch) loadLibrary();
+        }
+
+        async function doAdd() {
+            const url = document.getElementById('add-url').value.trim();
+            if (!url) return;
+
+            const btn = document.getElementById('addBtn');
+            const statusEl = document.getElementById('add-status');
+            btn.disabled = true;
+            statusEl.className = 'status';
+            statusEl.innerHTML = `<span class="spinner"></span>Indexing`;
+
+            try {
+                const res = await fetch('/ingest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || `Server error: ${res.status}`);
+                }
+                statusEl.style.color = '#0f6e56';
+                statusEl.textContent = 'Video added and indexed successfully.';
+                document.getElementById('add-url').value = '';
+                loadLibrary();
+            } catch (err) {
+                statusEl.className = 'status error';
+                statusEl.textContent = err.message;
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         async function loadLibrary() {

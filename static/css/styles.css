@@ -31,7 +31,7 @@ margin-bottom: 2rem;
     gap: 6px;
     margin-bottom: 1.5rem;
     border-bottom: 0.5px solid #d3d1c7;
-    padding-bottom: 1rem;
+    padding-bottom: 0;
 }
 
 .tab {
@@ -206,6 +206,12 @@ min-height: 18px;
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Library */
+
+.add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
 
 .lib-card {
     background: #fff;

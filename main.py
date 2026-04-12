@@ -1,10 +1,15 @@
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import numpy as np
 import pickle
 import json
+from pydantic import BaseModel
+from urllib.parse import urlparse, parse_qs
 
+from scripts.add_video import get_title
+from scripts.transcripts import get_transcript
 from scripts import embeddings
 
 app = FastAPI(title="Video Search API")
@@ -15,6 +20,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 with open("data/video_embeddings.pkl", "rb") as f:
     videos = pickle.load(f)
@@ -42,9 +49,72 @@ def search(query: str, top_k: int = 5):
 
     return results[:top_k]
 
-@app.post("/injest")
-def inject_endpoint():
-    return
+class IngestRequest(BaseModel):
+    url: str
+
+def extract_video_id(url: str):
+    parsed_url = urlparse(url)
+
+    if parsed_url.hostname in ["www.youtube.com", "youtube.com"]:
+        return parse_qs(parsed_url.query).get("v", [None])[0]
+    
+    return None
+
+@app.post("/ingest")
+def ingest_endpoint(body: IngestRequest):
+    # Extract video id from url
+    video_id = extract_video_id(body.url)
+
+    if not video_id:
+        return {"error": "Invalid YouTube URL"}, 400
+    
+    #Check for duplicates in the in-memory list
+    existing_ids = {v["video_id"] for v in videos}
+    if video_id in existing_ids:
+        return {"error": "Video already ingested", "video_id": video_id}
+    
+    # Build the video entry
+    new_video = {
+        "video_id": video_id,
+        "title": get_title(video_id),  # reuse your existing helper
+    }
+
+    # Fetch transcript
+    result = get_transcript(video_id)  # reuse your existing helper
+    new_video["transcript"] = result["text"]
+    new_video["transcript_status"] = result["status"]
+
+    # Generate embeddings if transcript is available
+    if result["text"]:
+        chunks = embeddings.chunk_text(result["text"])
+        new_video["chunks"] = []
+        for chunk in chunks:
+            embedding = embeddings.get_embedding(chunk)
+            new_video["chunks"].append({
+                "text": chunk,
+                "embedding": embedding.tolist(),
+            })
+    else:
+        new_video["chunks"] = []
+
+    # Persist to both files
+    videos.append(new_video)
+
+    with open("data/videos.json", "r+", encoding="utf-8") as f:
+        existing = json.load(f)
+        existing.append({k: v for k, v in new_video.items() if k != "chunks"})
+        f.seek(0)
+        json.dump(existing, f, indent=2, ensure_ascii=False)
+
+    with open("data/video_embeddings.pkl", "wb") as f:
+        pickle.dump(videos, f)
+
+    return {
+        "video_id": video_id,
+        "title": new_video["title"],
+        "transcript_status": new_video["transcript_status"],
+        "chunks_generated": len(new_video["chunks"]),
+    }
 
 @app.get("/videos")
 def list_videos():
