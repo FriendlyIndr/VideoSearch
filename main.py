@@ -36,12 +36,25 @@ def search(query: str, top_k: int = 5):
 
     results = []
     for video in videos:
+        # Search transcript chunks
         for chunk in video.get("chunks", []):
             score = cosine_similarity(query_embedding, chunk["embedding"])
             results.append({
                 "score": score, 
                 "video_id": video["video_id"],
                 "text": chunk["text"],
+                "type": "transcript",
+                "url": f"https://www.youtube.com/watch?v={video['video_id']}",
+            })
+
+        # Search explanations
+        for exp in video.get("explanations", []):
+            score = cosine_similarity(query_embedding, exp["embedding"])
+            results.append({
+                "score": score,
+                "video_id": video["video_id"],
+                "text": exp["text"],
+                "type": "explanation",
                 "url": f"https://www.youtube.com/watch?v={video['video_id']}",
             })
 
@@ -115,6 +128,38 @@ def ingest_endpoint(body: IngestRequest):
         "transcript_status": new_video["transcript_status"],
         "chunks_generated": len(new_video["chunks"]),
     }
+
+class AddExplanationRequest(BaseModel):
+    video_id: str
+    text: str
+
+@app.post("/add_explanation")
+def add_explanation(body: AddExplanationRequest):
+    #Find video
+    video = next((v for v in videos if v["video_id"] == body.video_id), None)
+
+    if not video:
+        return {"error": "Video not found"}, 404
+
+    #Generate embedding
+    embedding = embeddings.get_embedding(body.text)
+
+    #Initialize explanations if not present
+    if "explanations" not in video:
+        video["explanations"] = []
+
+    #Add explanation
+    video["explanations"].append({
+        "text": body.text,
+        "embedding": embedding.tolist(),
+    })
+
+    #Persist the explanation
+    with open("data/video_embeddings.pkl", "wb") as f:
+        pickle.dump(videos, f)
+
+    return {"message": "Explanation added successfully"}
+
 
 @app.get("/videos")
 def list_videos():
