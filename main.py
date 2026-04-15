@@ -165,9 +165,13 @@ def add_explanation(body: AddExplanationRequest):
 
 @app.get("/videos")
 def list_videos():
-    with open("data/videos.json", "r", encoding="utf-8") as f:
-        videos = json.load(f)
-    return [{"video_id": v["video_id"], "title": v.get("title", "")} for v in videos]
+    return [
+        {
+            "video_id": v["video_id"], 
+            "title": v.get("title", ""),
+            "explanations": [e["text"] for e in v.get("explanations", [])]
+        } for v in videos
+    ]
 
 @app.get("/search")
 def search_endpoint(

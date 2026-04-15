@@ -127,7 +127,9 @@
                             id='chev-${v.video_id}' 
                             onclick="toggleExpand('${v.video_id}')"
                         >
-                            View explanations
+                            View explanations ${
+                                v.explanations?.length ? `(${v.explanations.length})` : ''
+                            }
                         </button>
 
                         <div class="expand-section" id="expand-${v.video_id}">
@@ -143,6 +145,16 @@
                             >
                                 Add Explanation
                             </button>
+
+                            <div class="explanations">
+                                ${
+                                    (v.explanations || []).length
+                                    ? v.explanations.map(exp => `
+                                        <div class="exp-item">${escapeHtml(exp)}</div>
+                                    `).join()
+                                    : `<div>No explanations</div>`
+                                }
+                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -178,6 +190,8 @@
                 if (!res.ok) throw new Error(data.error || "Error");
 
                 textarea.value = "";
+
+                loadLibrary();
             } catch (err) {
                 alert(err.message);
             }
