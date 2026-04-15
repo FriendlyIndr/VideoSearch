@@ -114,6 +114,16 @@
                         <div class="video-info">
                             <div class="video-title">${escapeHtml(v.title || 'Untitled')}</div>
                             <div class="video-id-label">${v.video_id}</div>
+
+                            <textarea
+                                id="exp-${v.video_id}"
+                                placeholder="Add your explanation..."
+                                class="exp-box"
+                            ></textarea>
+
+                            <button onclick="addExplanation('${v.video_id}')">
+                                Add Explanation
+                            </button>
                         </div>
                         <a class="video-ext-link"
                             href="https://www.youtube.com/watch?v=${v.video_id}"
@@ -123,6 +133,30 @@
             } catch (err) {
                 statusEl.className = 'status error';
                 statusEl.textContent = err.message;
+            }
+        }
+
+        async function addExplanation(videoId) {
+            const textarea = document.getElementById(`exp-${videoId}`);
+            const text = textarea.value.trim();
+
+            try {
+                const res = await fetch('/add_explanation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_id: videoId,
+                        text: text,
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || "Error");
+
+                textarea.value = "";
+            } catch (err) {
+                alert(err.message);
             }
         }
 
