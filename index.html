@@ -109,25 +109,41 @@
                 }
 
                 listEl.innerHTML = videos.map((v, i) => `
-                    <div class="video-row">
-                        <span class="video-num">${i + 1}</span>
-                        <div class="video-info">
-                            <div class="video-title">${escapeHtml(v.title || 'Untitled')}</div>
-                            <div class="video-id-label">${v.video_id}</div>
+                    <div class="video-container">
+                        <div class="video-row">
+                            <span class="video-num">${i + 1}</span>
+                            <div class="video-info">
+                                <div class="video-title">${escapeHtml(v.title || 'Untitled')}</div>
+                                <div class="video-id-label">${v.video_id}</div>
+                            </div>
+                            
+                            <a class="video-ext-link"
+                                href="https://www.youtube.com/watch?v=${v.video_id}"
+                                target="_blank" rel="noopener">Open &#8599;</a>
+                        </div>
 
+                        <button 
+                            class="expand-btn" 
+                            id='chev-${v.video_id}' 
+                            onclick="toggleExpand('${v.video_id}')"
+                        >
+                            View explanations
+                        </button>
+
+                        <div class="expand-section" id="expand-${v.video_id}">
                             <textarea
                                 id="exp-${v.video_id}"
                                 placeholder="Add your explanation..."
                                 class="exp-box"
                             ></textarea>
 
-                            <button onclick="addExplanation('${v.video_id}')">
+                            <button 
+                                class="add-exp-btn"
+                                onclick="addExplanation('${v.video_id}')"
+                            >
                                 Add Explanation
                             </button>
                         </div>
-                        <a class="video-ext-link"
-                            href="https://www.youtube.com/watch?v=${v.video_id}"
-                            target="_blank" rel="noopener">Open &#8599;</a>
                     </div>
                 `).join('');
             } catch (err) {
@@ -136,9 +152,16 @@
             }
         }
 
+        function toggleExpand(videoId) {
+            const el = document.getElementById(`expand-${videoId}`);
+            el.classList.toggle('show');
+        }
+
         async function addExplanation(videoId) {
             const textarea = document.getElementById(`exp-${videoId}`);
             const text = textarea.value.trim();
+
+            if (!text) return alert("Please enter an explanation")
 
             try {
                 const res = await fetch('/add_explanation', {

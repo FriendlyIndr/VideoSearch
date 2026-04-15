@@ -8,9 +8,11 @@ import json
 from pydantic import BaseModel
 from urllib.parse import urlparse, parse_qs
 
+print("Starting app...")
 from scripts.add_video import get_title
 from scripts.transcripts import get_transcript
 from scripts import embeddings
+print("Embeddings imported")
 
 app = FastAPI(title="Video Search API")
 
