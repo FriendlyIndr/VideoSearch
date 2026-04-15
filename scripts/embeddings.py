@@ -17,28 +17,29 @@ def chunk_text(text, chunk_size=500):
 
     return chunks
 
-# Load existing videos
-with open("data/videos.json", "r", encoding="utf-8") as f:
-    videos = json.load(f)
+if __name__ == "__main__":
+    # Load existing videos
+    with open("data/videos.json", "r", encoding="utf-8") as f:
+        videos = json.load(f)
 
-# For each video
-for video in videos:
-    if "transcript" in video and video["transcript"]:
+    # For each video
+    for video in videos:
+        if "transcript" in video and video["transcript"]:
 
-        # Skip if already embedded
-        if "chunks" in video and video["chunks"]:
-            continue
+            # Skip if already embedded
+            if "chunks" in video and video["chunks"]:
+                continue
 
-        chunks = chunk_text(video["transcript"])
-        video["chunks"] = []
+            chunks = chunk_text(video["transcript"])
+            video["chunks"] = []
 
-        for chunk in chunks:
-            embedding = get_embedding(chunk)
+            for chunk in chunks:
+                embedding = get_embedding(chunk)
 
-            video["chunks"].append({
-                "text": chunk,
-                "embedding": embedding.tolist()
-            })
+                video["chunks"].append({
+                    "text": chunk,
+                    "embedding": embedding.tolist()
+                })
 
-with open("data/video_embeddings.pkl", "wb") as f:
-    pickle.dump(videos, f)
+    with open("data/video_embeddings.pkl", "wb") as f:
+        pickle.dump(videos, f)
