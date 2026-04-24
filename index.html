@@ -150,8 +150,14 @@
                                 ${
                                     (v.explanations || []).length
                                     ? v.explanations.map(exp => `
-                                        <div class="exp-item">${escapeHtml(exp)}</div>
-                                    `).join()
+                                        <div class="exp-item">
+                                            <textarea id="edit-${exp.id}" class="exp-box">${escapeHtml(exp.text)}</textarea>
+
+                                            <button onclick="editExplanation('${v.video_id}', '${exp.id}')">
+                                                Save
+                                            </button>
+                                        </div>
+                                    `).join('')
                                     : `<div>No explanations</div>`
                                 }
                             </div>
@@ -192,6 +198,35 @@
                 textarea.value = "";
 
                 loadLibrary();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function editExplanation(videoId, explanationId) {
+            const textarea = document.getElementById(`edit-${explanationId}`);
+            const newText = textarea.value.trim();
+
+            if (!newText) {
+                return alert("Explanation cannot be empty");
+            }
+
+            try {
+                const res = await fetch('/edit_explanation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_id: videoId,
+                        explanation_id: explanationId,
+                        new_text: newText
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || "Error updating");
+
+                loadLibrary(); // refresh UI
             } catch (err) {
                 alert(err.message);
             }

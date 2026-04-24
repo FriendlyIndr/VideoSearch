@@ -7,6 +7,7 @@ import pickle
 import json
 from pydantic import BaseModel
 from urllib.parse import urlparse, parse_qs
+import uuid
 
 print("Starting app...")
 from scripts.add_video import get_title
@@ -152,6 +153,7 @@ def add_explanation(body: AddExplanationRequest):
 
     #Add explanation
     video["explanations"].append({
+        "id": str(uuid.uuid4()),
         "text": body.text,
         "embedding": embedding.tolist(),
     })
@@ -162,6 +164,30 @@ def add_explanation(body: AddExplanationRequest):
 
     return {"message": "Explanation added successfully"}
 
+class EditExplanationRequest(BaseModel):
+    video_id: str
+    explanation_id: str
+    new_text: str
+
+@app.post("/edit_explanation")
+def edit_explanation(body: EditExplanationRequest):
+    video = next((v for v in videos if v["video_id"] == body.video_id), None)
+
+    if not video:
+        return {"error": "Video not found"}, 404
+
+    for exp in video.get("explanations", []):
+        if exp["id"] == body.explanation_id:
+            exp["text"] = body.new_text
+            exp["embedding"] = embeddings.get_embedding(body.new_text).tolist()
+
+            with open("data/video_embeddings.pkl", "wb") as f:
+                pickle.dump(videos, f)
+
+            return {"message": "Explanation updated"}
+        
+    return {"error": "Explanation not found"}, 404
+
 
 @app.get("/videos")
 def list_videos():
@@ -169,7 +195,7 @@ def list_videos():
         {
             "video_id": v["video_id"], 
             "title": v.get("title", ""),
-            "explanations": [e["text"] for e in v.get("explanations", [])]
+            "explanations": v.get("explanations", [])
         } for v in videos
     ]
 
