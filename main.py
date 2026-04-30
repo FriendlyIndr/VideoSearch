@@ -34,6 +34,13 @@ def cosine_similarity(a, b):
     b = np.array(b)
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
+def keyword_score(query, text):
+    query_words = set(query.lower().split())
+    text_words = set(text.lower().split())
+
+    overlap = query_words.intersection(text_words)
+    return len(overlap) / len(query_words) # simple ratio
+
 def search(query: str, top_k: int = 5):
     query_embedding = embeddings.get_embedding(query)
 
@@ -52,9 +59,13 @@ def search(query: str, top_k: int = 5):
 
         # Search explanations
         for exp in video.get("explanations", []):
-            score = cosine_similarity(query_embedding, exp["embedding"])
+            semantic_score = cosine_similarity(query_embedding, exp["embedding"])
+            keyword_boost = keyword_score(query, exp["text"])
+
+            final_score = semantic_score + 0.3 * keyword_boost # tune 0.3
+
             results.append({
-                "score": score,
+                "score": final_score,
                 "video_id": video["video_id"],
                 "text": exp["text"],
                 "type": "explanation",
