@@ -19,8 +19,8 @@ def chunk_text(text, chunk_size=500):
 
 if __name__ == "__main__":
     # Load existing videos
-    with open("data/videos.json", "r", encoding="utf-8") as f:
-        videos = json.load(f)
+    with open("data/video_embeddings.pkl", "rb") as f:
+        videos = pickle.load(f)
 
     # For each video
     for video in videos:
