@@ -137,6 +137,7 @@
                                 id="exp-${v.video_id}"
                                 placeholder="Add your explanation..."
                                 class="exp-box"
+                                oninput="autoResize(this)"
                             ></textarea>
 
                             <button 
@@ -151,7 +152,11 @@
                                     (v.explanations || []).length
                                     ? v.explanations.map(exp => `
                                         <div class="exp-item">
-                                            <textarea id="edit-${exp.id}" class="exp-box">${escapeHtml(exp.text)}</textarea>
+                                            <textarea 
+                                                id="edit-${exp.id}" 
+                                                class="exp-box"
+                                                oninput="autoResize(this)"
+                                            >${escapeHtml(exp.text)}</textarea>
 
                                             <button onclick="editExplanation('${v.video_id}', '${exp.id}')">
                                                 Save
@@ -173,6 +178,12 @@
         function toggleExpand(videoId) {
             const el = document.getElementById(`expand-${videoId}`);
             el.classList.toggle('show');
+
+            if (el.classList.contains('show')) {
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.exp-box').forEach(autoResize);
+                });
+            }
         }
 
         async function addExplanation(videoId) {
@@ -230,6 +241,11 @@
             } catch (err) {
                 alert(err.message);
             }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
         }
 
         const queryInput = document.getElementById("query");
