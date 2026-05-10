@@ -2,6 +2,7 @@ from sentence_transformers import SentenceTransformer
 import json
 import pickle
 
+print('Fetching model')
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 def get_embedding(text):

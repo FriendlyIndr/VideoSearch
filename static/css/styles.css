@@ -306,3 +306,24 @@ min-height: 18px;
     border-radius: 6px;
     margin-bottom: 6px;
 }
+
+.answer-card {
+    background: #ffffff;
+    border: 0.5px solid #d3d1c7;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+}
+
+.answer-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4f46e5;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.answer-text {
+    line-height: 1.65;
+}

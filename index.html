@@ -33,6 +33,10 @@
             </div>
         
             <div class="status" id="status"></div>
+
+            <!-- LLM answer -->
+            <div id="answer-container"></div>
+
             <div class="results" id="results"></div>
         </div>
 
@@ -252,6 +256,7 @@
         const statusEl = document.getElementById("status");
         const resultsEl = document.getElementById("results");
         const searchBtn = document.getElementById("searchBtn");
+        const answerContainer = document.getElementById("answer-container");
     
         queryInput.addEventListener("keydown", e => {
             if (e.key === "Enter") doSearch();
@@ -272,7 +277,21 @@
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 const data = await res.json();
         
-                const { results } = data;
+                const { results, answer } = data;
+
+                if (answer) {
+                    answerContainer.innerHTML = `
+                        <div class="answer-card">
+                            <div class="answer-title">AI Answer</div>
+                            <div class="answer-text">
+                                ${escapeHtml(answer)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    answerContainer.innerHTML = "";
+                }
+                
                 statusEl.textContent = results.length
                 ? `${results.length} result${results.length !== 1 ? "s" : ""} for "${q}"`
                 : "";

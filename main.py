@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+import os
+load_dotenv()
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +11,71 @@ import json
 from pydantic import BaseModel
 from urllib.parse import urlparse, parse_qs
 import uuid
+from groq import Groq
+
+client = Groq()
+
+def generate_answer(query: str, retrieved_results: list):
+    context_parts = []
+
+    for r in retrieved_results:
+        context_parts.append(
+            f"""
+TYPE: {r['type']}
+VIDEO: {r['video_id']}
+CONTENT: 
+{r['text'][:500]}
+            """
+        )
+
+    context = "\n\n".join(context_parts)
+
+    prompt = f"""
+You are an AI assistant that answers questions using the provided YouTube transcript chunks and
+explanations.
+
+Use ONLY the provided context.
+
+Try to provide something from each piece of text here. 
+
+IMPORTANT:
+- Always answer in Roman script only.
+- Never use Devanagari characters.
+- If Hindi words are needed, write them using English letters.
+- Example:
+  Correct: "namaste ka matlab greeting hota hai"
+  Wrong: "नमस्ते का मतलब greeting होता है"
+
+CONTEXT:
+{context}
+
+QUESTION:
+{query}
+
+ANSWER:
+        """
+
+    completion = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You answer questions from retrieved YouTube knowledge."
+                    "Always respond in Roman script only. "
+                    "Never use Devanagari characters."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.2,
+        max_tokens=500,
+    )
+
+    return completion.choices[0].message.content
 
 print("Starting app...")
 from scripts.add_video import get_title
@@ -220,7 +288,14 @@ def search_endpoint(
     top_k: int = Query(5, ge=1, le=20, description="Number of results"),
 ):
     results = search(q, top_k)
-    return {"query": q, "results": results}
+
+    answer = generate_answer(q, results)
+
+    return {
+        "query": q,
+        "answer": answer,
+        "results": results
+    }
 
 @app.get("/", response_class=HTMLResponse)
 def index():
