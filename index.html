@@ -212,7 +212,46 @@
 
                 textarea.value = "";
 
-                loadLibrary();
+                // find explanations container
+                const explanationsDiv = document.querySelector(
+                    `#expand-${videoId} .explanations`
+                );
+
+                // remove "No explanations"
+                if (explanationsDiv.innerHTML.includes("No explanations")) {
+                    explanationsDiv.innerHTML = "";
+                }
+
+                // append new explanation directly 
+                explanationsDiv.insertAdjacentHTML(
+                    "beforeend",
+                    `
+                    <div class="exp-item">
+                        <textarea
+                            id="edit-${data.id}"
+                            class="exp-box"
+                            oninput="autoResize(this)"
+                        >${escapeHtml(text)}</textarea>
+
+                        <button onclick="editExplanation('${videoId}', '${data.id}')">
+                            Save
+                        </button>
+                    </div>
+                    `
+                );
+
+                // auto resize new textarea
+                autoResize(document.getElementById(`edit-${data.id}`));
+
+                // update button count
+                const btn = document.getElementById(`chev-${videoId}`);
+                const currentCountMatch = btn.textContent.match(/\((\d+)\)/);
+
+                let count = currentCountMatch ? parseInt(currentCountMatch[1]) : 0;
+                count++;
+
+                btn.textContent = `View explanations (${count})`;
+
             } catch (err) {
                 alert(err.message);
             }
@@ -241,7 +280,7 @@
 
                 if (!res.ok) throw new Error(data.error || "Error updating");
 
-                loadLibrary(); // refresh UI
+                alert('Explanation edited');
             } catch (err) {
                 alert(err.message);
             }

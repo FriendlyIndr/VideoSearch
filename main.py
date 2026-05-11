@@ -234,9 +234,11 @@ def add_explanation(body: AddExplanationRequest):
     if "explanations" not in video:
         video["explanations"] = []
 
+    explanation_id = str(uuid.uuid4())
+
     #Add explanation
     video["explanations"].append({
-        "id": str(uuid.uuid4()),
+        "id": explanation_id,
         "text": body.text,
         "embedding": embedding.tolist(),
     })
@@ -245,7 +247,10 @@ def add_explanation(body: AddExplanationRequest):
     with open("data/video_embeddings.pkl", "wb") as f:
         pickle.dump(videos, f)
 
-    return {"message": "Explanation added successfully"}
+    return {
+        "message": "Explanation added successfully",
+        "id": explanation_id
+    }
 
 class EditExplanationRequest(BaseModel):
     video_id: str
