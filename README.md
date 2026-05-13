@@ -16,6 +16,25 @@ Limitations:
 - Pickle also does not index vectors. So, to find similar vectors, obne must run a linear search, which is slow.
 - Pickle also should not be used with untrusted input, as it can create a security vulnerability.
 
+Possible fixes:
+
+- The linear search problem with pickle: FAISS (Facebook AI Similarity Search) can be used to intoduce indexes. It is a library.
+- RAM usage of Pickle: FAISS stores vectors in highly optimized C++ structures. The memory usage is much lower than Python objects.
+
+Pickle cosine-search architecture:
+
+- Pickle file loaded.
+- Python objects in RAM
+- For-loop over every chunk and explanation
+- Cosine-similarity calculated
+
+Its complexity was O(n) for every search.
+
+Architecture 2:
+
+- Store vectos in FAISS.
+- Store metadata separately (SQLite for now).
+
 Tech Stack:
 
 - Backend: FastAPI
