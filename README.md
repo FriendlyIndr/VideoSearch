@@ -32,8 +32,14 @@ Its complexity was O(n) for every search.
 
 Architecture 2:
 
-- Store vectos in FAISS.
+- Store vectors in FAISS.
 - Store metadata separately (SQLite for now).
+
+Advantages:
+
+- FAISS uses optimized nearest-neighbor algorithms instead of linear search with cosine similarity. This is a faster method.
+
+How am I going to migrate the embeddings from the Pickle file (video_embeddigns.pkl) to FAISS?
 
 Tech Stack:
 
