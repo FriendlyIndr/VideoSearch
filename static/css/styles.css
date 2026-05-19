@@ -327,3 +327,12 @@ min-height: 18px;
 .answer-text {
     line-height: 1.65;
 }
+
+.exp-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-btn {
+    color: #a32d2d;
+}

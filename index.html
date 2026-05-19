@@ -155,16 +155,25 @@
                                 ${
                                     (v.explanations || []).length
                                     ? v.explanations.map(exp => `
-                                        <div class="exp-item">
+                                        <div class="exp-item" id="exp-item-${exp.id}">
                                             <textarea 
                                                 id="edit-${exp.id}" 
                                                 class="exp-box"
                                                 oninput="autoResize(this)"
                                             >${escapeHtml(exp.text)}</textarea>
 
-                                            <button onclick="editExplanation('${v.video_id}', '${exp.id}')">
-                                                Save
-                                            </button>
+                                            <div class="exp-actions">
+                                                <button onclick="editExplanation('${v.video_id}', '${exp.id}')">
+                                                    Save
+                                                </button>
+
+                                                <button
+                                                    class="delete-btn"
+                                                    onclick="deleteExplanation('${v.video_id}', '${exp.id}')"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     `).join('')
                                     : `<div>No explanations</div>`
@@ -226,16 +235,25 @@
                 explanationsDiv.insertAdjacentHTML(
                     "beforeend",
                     `
-                    <div class="exp-item">
+                    <div class="exp-item" id="exp-item-${data.id}">
                         <textarea
                             id="edit-${data.id}"
                             class="exp-box"
                             oninput="autoResize(this)"
                         >${escapeHtml(text)}</textarea>
 
-                        <button onclick="editExplanation('${videoId}', '${data.id}')">
-                            Save
-                        </button>
+                        <div class="exp-actions">
+                            <button onclick="editExplanation('${videoId}', '${data.id}')">
+                                Save
+                            </button>
+
+                            <button
+                                class="delete-btn"
+                                onclick="deleteExplanation('${videoId}', '${data.id}')"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                     `
                 );
@@ -281,6 +299,67 @@
                 if (!res.ok) throw new Error(data.error || "Error updating");
 
                 alert('Explanation edited');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function deleteExplanation(videoId, explanationId) {
+            const confirmed = confirm("Delete this explanation?");
+
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch('/delete_explanation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        video_id: videoId,
+                        explanation_id: explanationId
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Delete failed");
+                }
+
+                // Remove from DOM
+                const item = document.getElementById(`exp-item-${explanationId}`);
+
+                if (item) {
+                    item.remove();
+                }
+
+                // Update explanation count
+                const btn = document.getElementById(`chev-${videoId}`);
+
+                const currentCountMatch = btn.textContent.match(/\((\d+)\)/);
+
+                let count = currentCountMatch
+                    ? parseInt(currentCountMatch[1])
+                    : 0;
+
+                count = Math.max(0, count - 1);
+
+                btn.textContent = count > 0
+                    ? `View explanations (${count})`
+                    : 'View explanations';
+
+                // Show empty message if none left
+                const explanationsDiv = document.querySelector(
+                    `#expand-${videoId} .explanations`
+                );
+
+                if (
+                    explanationsDiv &&
+                    explanationsDiv.children.length === 0
+                ) {
+                    explanationsDiv.innerHTML = `<div>No explanations</div>`;
+                }
             } catch (err) {
                 alert(err.message);
             }

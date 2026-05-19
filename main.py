@@ -276,6 +276,44 @@ def edit_explanation(body: EditExplanationRequest):
         
     return {"error": "Explanation not found"}, 404
 
+class DeleteExplanationRequest(BaseModel):
+    video_id: str
+    explanation_id: str
+
+@app.post("/delete_explanation")
+def delete_explanation(body: DeleteExplanationRequest):
+    # Find video
+    video = next((v for v in videos if v["video_id"] == body.video_id), None)
+
+    if not video:
+        return {"error": "Video not found"}, 404
+    
+    explanations = video.get("explanations", [])
+
+    # Find explanation index
+    explanation_index = next(
+        (
+            i for i, exp in enumerate(explanations)
+            if exp["id"] == body.explanation_id
+        ),
+        None
+    )
+
+    if explanation_index is None:
+        return {"error": "Explanation not founc"}, 404
+    
+    # Remove explanation
+    deleted_explanation = explanations.pop(explanation_index)
+
+    # Persist updated data
+    with open("data/video_embeddings.pkl", "wb") as f:
+        pickle.dump(videos, f)
+
+    return {
+        "message": "Explanation deleted successfully",
+        "deleted_id": deleted_explanation["id"]
+    }
+
 
 @app.get("/videos")
 def list_videos():
